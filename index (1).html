@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPI Informatika — Algoritma (Algorithm Design) | SMP Negeri 2 Deket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-head:'Poppins',sans-serif;
+  --font-body:'Nunito',sans-serif;
+  --c-primary:#1D4ED8;
+  --c-primary2:#3B82F6;
+  --c-accent:#F59E0B;
+  --c-accent2:#EF4444;
+  --c-success:#16A34A;
+  --c-danger:#DC2626;
+  --c-purple:#7C3AED;
+  --c-teal:#0D9488;
+  --c-ink:#1E293B;
+  --c-sub:#475569;
+  --c-card:rgba(255,255,255,0.95);
+  --c-card-soft:rgba(255,255,255,0.75);
+  --base:15px;
+  --pad-s:clamp(10px,1.8vh,18px);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;}
+body{
+  font-family:var(--font-body);
+  font-size:var(--base);
+  color:var(--c-ink);
+  background:linear-gradient(135deg,#0f2a5c,#13417d 55%,#0a1f45);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  height:100vh;width:100vw;
+}
+#stage-16-9{
+  position:relative;
+  width:min(100vw, 177.78vh);
+  height:min(100vh, 56.25vw);
+  aspect-ratio:16/9;
+  overflow:hidden;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  display:flex;
+  flex-direction:column;
+}
+#bg-photo{
+  position:absolute;inset:0;
+  background-image:url('bg-ruang-kelas.jpg');
+  background-size:cover;background-position:center;
+  z-index:0;
+}
+#bg-overlay{
+  position:absolute;inset:0;
+  background:rgba(255,255,255,0.86);
+  z-index:1;
+}
+#topbar,#navbar{position:relative;z-index:5;}
+#content{position:relative;z-index:4;flex:1;min-height:0;display:flex;overflow:hidden;}
+
+/* ===== TOPBAR ===== */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(6px,1.2vh,12px) clamp(14px,2.4vw,28px);
+  gap:12px;
+}
+#topbar .left{display:flex;align-items:center;gap:12px;min-width:0;}
+#topbar img.logo{height:clamp(50px,6.2vh,68px);width:auto;border-radius:8px;flex-shrink:0;}
+#topbar .school-txt{line-height:1.15;min-width:0;}
+#topbar .school-txt b{font-family:var(--font-head);font-size:clamp(13px,1.6vw,16px);color:var(--c-primary);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#topbar .school-txt span{font-size:12px;color:var(--c-sub);font-weight:600;}
+#topbar .page-title{
+  font-family:var(--font-head);font-weight:700;
+  font-size:clamp(16px,2.1vw,22px);color:var(--c-primary);
+  text-align:center;flex:1;
+}
+#topbar .right{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--c-accent2);font-size:13px;}
+#topbar .right .badge{
+  background:var(--c-accent);color:#fff;border-radius:999px;
+  padding:4px 12px;font-family:var(--font-head);font-size:12px;
+}
+
+/* ===== NAVBAR ===== */
+#navbar{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:clamp(6px,1.2vh,12px) 20px;
+}
+.nav-btn{
+  font-family:var(--font-head);font-weight:700;font-size:13px;
+  border:none;border-radius:999px;padding:9px 20px;cursor:pointer;
+  background:var(--c-primary);color:#fff;transition:transform .15s, background .15s;
+  box-shadow:0 4px 10px rgba(29,78,216,.35);
+}
+.nav-btn:hover{transform:translateY(-2px);background:var(--c-primary2);}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+#dots{display:flex;gap:6px;align-items:center;}
+.dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;transition:.2s;cursor:pointer;}
+.dot.active{background:var(--c-primary);width:22px;border-radius:5px;}
+
+/* ===== SLIDE GENERIC ===== */
+.slide{
+  width:100%;height:100%;display:none;
+  padding:var(--pad-s) clamp(20px,3.4vw,44px);
+  overflow:hidden;flex-direction:column;gap:clamp(8px,1.4vh,14px);
+}
+.slide.active{display:flex;animation:fadeIn .45s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.card{
+  background:var(--c-card);border-radius:18px;
+  box-shadow:0 8px 24px rgba(15,42,92,.12);
+  padding:clamp(12px,2vh,20px) clamp(16px,2.4vw,26px);
+}
+.h-title{font-family:var(--font-head);font-weight:800;color:var(--c-primary);font-size:clamp(16px,2vw,22px);margin-bottom:4px;}
+.h-sub{font-size:13px;color:var(--c-sub);font-weight:600;margin-bottom:6px;}
+.icon-box{
+  width:clamp(66px,7vw,88px);height:clamp(66px,7vw,88px);
+  border-radius:20px;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(34px,3.6vw,46px);flex-shrink:0;
+  box-shadow:0 6px 14px rgba(0,0,0,.12);
+}
+
+/* ===== COVER ===== */
+#slide-cover{align-items:center;justify-content:center;text-align:center;padding:0;gap:14px;}
+.cover-logo{height:clamp(70px,9vh,100px);margin-bottom:6px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.2));}
+.cover-eyebrow{font-family:var(--font-head);font-weight:700;font-size:clamp(13px,1.6vw,17px);color:var(--c-accent2);letter-spacing:.3px;}
+.cover-title{
+  font-family:var(--font-head);font-weight:800;
+  font-size:clamp(2.8rem,6.8vw,5.2rem);
+  line-height:1.02;
+  background:linear-gradient(100deg,var(--c-primary),var(--c-purple) 55%,var(--c-accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin:2px 0;
+}
+.cover-sub{font-size:clamp(13px,1.6vw,17px);font-weight:700;color:var(--c-ink);max-width:70%;}
+.cover-meta{font-size:13px;color:var(--c-sub);font-weight:600;}
+#btn-mulai{
+  margin-top:10px;
+  font-family:var(--font-head);font-weight:800;font-size:clamp(15px,1.8vw,20px);
+  color:#fff;background:linear-gradient(120deg,var(--c-accent2),var(--c-accent));
+  border:none;border-radius:999px;padding:14px 46px;cursor:pointer;letter-spacing:.5px;
+  box-shadow:0 0 0 0 rgba(239,68,68,.55);
+  animation:pulseGlow 1.8s infinite;
+}
+@keyframes pulseGlow{
+  0%{box-shadow:0 0 0 0 rgba(239,68,68,.55);}
+  70%{box-shadow:0 0 0 22px rgba(239,68,68,0);}
+  100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}
+}
+
+/* ===== PROFIL / IDENTITAS ===== */
+.identitas-wrap{display:flex;gap:clamp(16px,2.6vw,34px);flex:1;min-height:0;align-items:center;}
+.profil-photo{
+  width:clamp(130px,15vh,175px);height:clamp(130px,15vh,175px);
+  border-radius:50%;object-fit:cover;border:5px solid #fff;
+  box-shadow:0 10px 24px rgba(15,42,92,.25);flex-shrink:0;
+}
+.identitas-info{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;}
+.info-row{display:flex;gap:10px;align-items:baseline;}
+.info-row .lbl{font-family:var(--font-head);font-weight:700;color:var(--c-primary);font-size:13px;min-width:150px;}
+.info-row .val{font-weight:700;font-size:clamp(14px,1.7vw,18px);color:var(--c-ink);}
+
+/* ===== TUJUAN PEMBELAJARAN ===== */
+.tp-card{
+  background:var(--c-card);border-radius:16px;padding:10px 16px;
+  display:flex;gap:12px;align-items:flex-start;
+  box-shadow:0 5px 14px rgba(15,42,92,.10);
+  border-left:6px solid var(--c-primary2);
+}
+.tp-num{
+  font-family:var(--font-head);font-weight:800;color:#fff;background:var(--c-primary2);
+  border-radius:50%;width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.tp-card p{font-weight:700;font-size:13.5px;color:var(--c-ink);line-height:1.35;}
+.tp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;flex:1;min-height:0;}
+
+/* ===== MATERI GENERIC ===== */
+.materi-wrap{display:flex;gap:18px;flex:1;min-height:0;}
+.materi-left{flex:1.05;display:flex;flex-direction:column;gap:8px;justify-content:center;}
+.materi-right{flex:1;display:flex;align-items:center;justify-content:center;min-width:0;}
+.materi-left p, .materi-left li{font-size:14px;font-weight:600;line-height:1.42;color:var(--c-ink);}
+.materi-left ul{padding-left:18px;display:flex;flex-direction:column;gap:5px;}
+.pill-label{fill:#fff;stroke:var(--c-primary);stroke-width:1.5px;}
+svg text.svg-lbl{font-family:var(--font-body);font-weight:700;font-size:14px;fill:var(--c-ink);}
+
+/* ===== AKTIVITAS ===== */
+.akt-steps{display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center;}
+.akt-item{
+  background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;
+  display:flex;align-items:center;gap:10px;cursor:grab;box-shadow:0 4px 10px rgba(0,0,0,.08);
+  border:2px solid transparent;user-select:none;
+}
+.akt-item.correct-pos{border-color:var(--c-success);background:#ecfdf3;}
+.akt-item .num{
+  width:26px;height:26px;border-radius:50%;background:var(--c-primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+
+/* ===== EVALUASI ===== */
+.eval-wrap{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;}
+.q-box{background:var(--c-card);border-radius:16px;padding:14px 20px;flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;justify-content:center;}
+.q-text{font-family:var(--font-head);font-weight:700;font-size:clamp(14px,1.7vw,18px);color:var(--c-ink);}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.opt-btn{
+  background:#f1f5f9;border:2px solid #e2e8f0;border-radius:12px;padding:10px 14px;
+  font-weight:700;font-size:13.5px;text-align:left;cursor:pointer;transition:.15s;color:var(--c-ink);
+}
+.opt-btn:hover{border-color:var(--c-primary2);background:#eff6ff;}
+.opt-btn.correct{background:#dcfce7;border-color:var(--c-success);color:#166534;}
+.opt-btn.wrong{background:#fee2e2;border-color:var(--c-danger);color:#991b1b;}
+.opt-btn:disabled{cursor:default;}
+.bs-grid{display:flex;gap:14px;justify-content:center;}
+.bs-btn{
+  font-family:var(--font-head);font-weight:800;border:none;border-radius:12px;
+  padding:10px 30px;font-size:14px;cursor:pointer;color:#fff;
+}
+.bs-btn.b{background:var(--c-success);} .bs-btn.s{background:var(--c-danger);}
+.eval-footer{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12.5px;color:var(--c-sub);}
+.progress-mini{display:flex;gap:5px;}
+.progress-mini span{width:20px;height:5px;border-radius:3px;background:#cbd5e1;}
+.progress-mini span.done{background:var(--c-success);}
+.progress-mini span.now{background:var(--c-accent);}
+
+/* Matching */
+.match-wrap{flex:1;position:relative;display:flex;justify-content:space-between;align-items:center;padding:6px 30px;}
+.match-col{display:flex;flex-direction:column;gap:12px;z-index:2;}
+.match-item{
+  background:#fff;border:2px solid #cbd5e1;border-radius:12px;padding:9px 16px;
+  font-weight:700;font-size:13px;cursor:pointer;min-width:170px;text-align:center;transition:.15s;
+}
+.match-item.selected{border-color:var(--c-accent);background:#fffbeb;}
+.match-item.linked{border-color:var(--c-success);background:#ecfdf5;cursor:default;}
+.match-item.wronglink{border-color:var(--c-danger);background:#fef2f2;}
+#match-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+
+/* Result */
+.result-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;}
+.score-circle{
+  width:clamp(120px,15vh,165px);height:clamp(120px,15vh,165px);border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:conic-gradient(var(--c-success) calc(var(--pct,0)*1%), #e2e8f0 0);
+  box-shadow:0 8px 20px rgba(15,42,92,.18);
+}
+.score-circle .inner{
+  width:76%;height:76%;border-radius:50%;background:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.score-circle .num{font-family:var(--font-head);font-weight:800;font-size:clamp(24px,3vw,34px);color:var(--c-primary);}
+.result-detail{display:flex;gap:14px;}
+.result-detail .box{background:var(--c-card);border-radius:12px;padding:8px 18px;font-weight:700;font-size:13px;min-width:120px;}
+.result-detail .box b{display:block;font-family:var(--font-head);font-size:18px;color:var(--c-primary);}
+
+.footer-note{font-size:11.5px;color:var(--c-sub);font-weight:700;text-align:center;}
+.badge-tp{display:inline-block;background:var(--c-purple);color:#fff;border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:800;margin-bottom:4px;}
+</style>
+</head>
+<body>
+
+<div id="stage-16-9">
+  <div id="bg-photo"></div>
+  <div id="bg-overlay"></div>
+
+  <div id="topbar">
+    <div class="left">
+      <img class="logo" src="logo-sekolah.jpg" alt="Logo Sekolah" onerror="this.style.display='none'">
+      <div class="school-txt">
+        <b id="tb-sekolah">SMP Negeri 2 Deket</b>
+        <span id="tb-mapel">Informatika · Materi: Algoritma (Algorithm Design)</span>
+      </div>
+    </div>
+    <div class="page-title" id="tb-pagetitle">Sampul</div>
+    <div class="right"><span class="badge" id="tb-fase">Kelas VII · Fase D</span></div>
+  </div>
+
+  <div id="content">
+
+    <!-- 0. COVER -->
+    <section class="slide active" id="slide-cover">
+      <img class="cover-logo" src="logo-sekolah.jpg" alt="Logo Sekolah" onerror="this.style.display='none'">
+      <div class="cover-eyebrow">Media Pembelajaran Interaktif · Kurikulum Merdeka</div>
+      <div class="cover-title">Algoritma</div>
+      <div class="cover-sub">Menyusun langkah-langkah logis, runtut, dan terstruktur untuk menghasilkan solusi dari suatu permasalahan</div>
+      <div class="cover-meta" id="cover-meta">SMP Negeri 2 Deket · Informatika · Kelas VII Fase D · Nila Endah Setiawati, S.Kom</div>
+      <button id="btn-mulai" onclick="playClick();goTo(1);">▶ MULAI</button>
+    </section>
+
+    <!-- 1. IDENTITAS -->
+    <section class="slide" id="slide-1">
+      <div class="identitas-wrap">
+        <img class="profil-photo" src="foto-guru.jpg" alt="Foto Guru" onerror="this.src='';this.style.background='#cbd5e1';">
+        <div class="identitas-info">
+          <div class="card">
+            <div class="h-title">Identitas Pembelajaran</div>
+            <div class="info-row"><span class="lbl">Nama Sekolah</span><span class="val" id="id-sekolah">SMP Negeri 2 Deket</span></div>
+            <div class="info-row"><span class="lbl">Nama Guru</span><span class="val" id="id-guru">Nila Endah Setiawati, S.Kom</span></div>
+            <div class="info-row"><span class="lbl">Mata Pelajaran</span><span class="val" id="id-mapel">Informatika</span></div>
+            <div class="info-row"><span class="lbl">Kelas / Fase</span><span class="val" id="id-kelas">VII / D</span></div>
+            <div class="info-row"><span class="lbl">Materi Pokok</span><span class="val" id="id-materi">Algoritma (Algorithm Design)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TUJUAN PEMBELAJARAN -->
+    <section class="slide" id="slide-2">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+        <div class="h-title" style="text-align:center;">🎯 Tujuan Pembelajaran</div>
+        <div class="tp-grid">
+          <div class="tp-card"><div class="tp-num">1</div><p>Menerapkan metode dekomposisi untuk memecah masalah sehari-hari yang kompleks menjadi beberapa langkah yang lebih sederhana.</p></div>
+          <div class="tp-card"><div class="tp-num">2</div><p>Mengidentifikasi dan menemukan pola atau kesamaan dari dua atau lebih permasalahan guna mempermudah pencarian solusi.</p></div>
+          <div class="tp-card"><div class="tp-num">3</div><p>Melakukan abstraksi dengan memilah informasi penting dan mengeliminasi informasi yang tidak relevan dari suatu studi kasus.</p></div>
+          <div class="tp-card"><div class="tp-num">4</div><p>Merancang dan menyusun algoritma langkah demi langkah secara logis untuk menyelesaikan sebuah tugas atau persoalan komputasi.</p></div>
+          <div class="tp-card"><div class="tp-num">5</div><p>Menerapkan berpikir komputasional untuk menghasilkan beberapa alternatif solusi dari persoalan yang mengandung data diskrit bervolume kecil.</p></div>
+          <div class="tp-card"><div class="tp-num">6</div><p>Menuliskan instruksi atau langkah penyelesaian masalah dalam bentuk algoritma sederhana (pseudocode / blok kode visual).</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. APA ITU ALGORITMA -->
+    <section class="slide" id="slide-3">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <div class="icon-box" style="background:#dbeafe;color:var(--c-primary);">🧩</div>
+          <div class="h-title">Apa itu Algoritma?</div>
+          <p><b>Algoritma</b> adalah kumpulan langkah-langkah logis dan sistematis yang disusun secara berurutan untuk menyelesaikan suatu masalah atau tugas tertentu.</p>
+          <ul>
+            <li><b>Jelas</b> — setiap langkah tidak boleh membingungkan.</li>
+            <li><b>Runtut (sequential)</b> — dikerjakan sesuai urutan.</li>
+            <li><b>Terbatas</b> — memiliki titik akhir/berhenti.</li>
+            <li><b>Efektif</b> — benar-benar menyelesaikan masalah.</li>
+          </ul>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 360 300" style="width:100%;height:clamp(260px,34vh,320px);">
+            <rect x="130" y="10" width="100" height="46" rx="10" fill="#3B82F6"/>
+            <text x="180" y="38" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Masalah</text>
+            <line x1="180" y1="56" x2="180" y2="86" stroke="#1D4ED8" stroke-width="5"/>
+            <polygon points="180,96 172,84 188,84" fill="#1D4ED8"/>
+            <rect x="110" y="98" width="140" height="46" rx="10" fill="#F59E0B"/>
+            <text x="180" y="126" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Langkah 1,2,3...</text>
+            <line x1="180" y1="144" x2="180" y2="174" stroke="#1D4ED8" stroke-width="5"/>
+            <polygon points="180,184 172,172 188,172" fill="#1D4ED8"/>
+            <rect x="125" y="186" width="110" height="46" rx="10" fill="#16A34A"/>
+            <text x="180" y="214" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Solusi</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. DEKOMPOSISI (TP1) -->
+    <section class="slide" id="slide-4">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <span class="badge-tp">TP 1</span>
+          <div class="icon-box" style="background:#fee2e2;color:var(--c-accent2);">🧱</div>
+          <div class="h-title">Dekomposisi</div>
+          <p>Dekomposisi adalah cara memecah masalah besar dan kompleks menjadi beberapa <b>bagian kecil</b> yang lebih sederhana dan mudah diselesaikan satu per satu.</p>
+          <p><b>Contoh:</b> Merencanakan pesta ulang tahun dipecah menjadi: menyusun daftar tamu, memesan kue, menyiapkan dekorasi, dan membuat undangan.</p>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 380 300" style="width:100%;height:clamp(260px,34vh,320px);">
+            <rect x="130" y="14" width="120" height="50" rx="12" fill="#EF4444"/>
+            <text x="190" y="44" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Masalah Besar</text>
+            <line x1="190" y1="64" x2="70" y2="140" stroke="#DC2626" stroke-width="5"/>
+            <line x1="190" y1="64" x2="190" y2="140" stroke="#DC2626" stroke-width="5"/>
+            <line x1="190" y1="64" x2="310" y2="140" stroke="#DC2626" stroke-width="5"/>
+            <rect x="20" y="142" width="100" height="44" rx="10" fill="#F59E0B"/>
+            <text x="70" y="169" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Bagian A</text>
+            <rect x="140" y="142" width="100" height="44" rx="10" fill="#F59E0B"/>
+            <text x="190" y="169" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Bagian B</text>
+            <rect x="260" y="142" width="100" height="44" rx="10" fill="#F59E0B"/>
+            <text x="310" y="169" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Bagian C</text>
+            <line x1="70" y1="186" x2="70" y2="220" stroke="#16A34A" stroke-width="5"/>
+            <line x1="190" y1="186" x2="190" y2="220" stroke="#16A34A" stroke-width="5"/>
+            <line x1="310" y1="186" x2="310" y2="220" stroke="#16A34A" stroke-width="5"/>
+            <rect x="10" y="222" width="120" height="40" rx="20" fill="#fff" stroke="#16A34A" stroke-width="2"/>
+            <text x="70" y="247" text-anchor="middle" font-weight="700" font-size="12" fill="#166534">Mudah Selesai</text>
+            <rect x="130" y="222" width="120" height="40" rx="20" fill="#fff" stroke="#16A34A" stroke-width="2"/>
+            <text x="190" y="247" text-anchor="middle" font-weight="700" font-size="12" fill="#166534">Mudah Selesai</text>
+            <rect x="250" y="222" width="120" height="40" rx="20" fill="#fff" stroke="#16A34A" stroke-width="2"/>
+            <text x="310" y="247" text-anchor="middle" font-weight="700" font-size="12" fill="#166534">Mudah Selesai</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PENGENALAN POLA (TP2) -->
+    <section class="slide" id="slide-5">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <span class="badge-tp" style="background:var(--c-teal);">TP 2</span>
+          <div class="icon-box" style="background:#ccfbf1;color:var(--c-teal);">🔍</div>
+          <div class="h-title">Pengenalan Pola</div>
+          <p>Pengenalan pola (pattern recognition) adalah kemampuan menemukan <b>kesamaan atau pola</b> antara dua masalah atau lebih, sehingga solusi yang pernah berhasil dapat digunakan kembali.</p>
+          <p><b>Contoh:</b> Cara menghitung luas persegi dan persegi panjang memiliki pola yang sama, yaitu <i>panjang × lebar</i>.</p>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 380 260" style="width:100%;height:clamp(260px,34vh,320px);">
+            <rect x="20" y="20" width="80" height="80" rx="10" fill="#0D9488"/>
+            <rect x="140" y="20" width="80" height="80" rx="10" fill="#0D9488"/>
+            <rect x="260" y="20" width="80" height="80" rx="10" fill="#F59E0B"/>
+            <text x="60" y="65" text-anchor="middle" fill="#fff" font-size="26">🔷</text>
+            <text x="180" y="65" text-anchor="middle" fill="#fff" font-size="26">🔷</text>
+            <text x="300" y="65" text-anchor="middle" fill="#fff" font-size="26">❓</text>
+            <line x1="20" y1="130" x2="340" y2="130" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6,6"/>
+            <rect x="110" y="150" width="160" height="42" rx="21" fill="#fff" stroke="#0D9488" stroke-width="2.5"/>
+            <text x="190" y="176" text-anchor="middle" font-weight="700" font-size="14" fill="#0D9488">Pola yang Sama?</text>
+            <line x1="190" y1="192" x2="190" y2="216" stroke="#0D9488" stroke-width="5"/>
+            <polygon points="190,226 182,214 198,214" fill="#0D9488"/>
+            <text x="190" y="248" text-anchor="middle" font-weight="800" font-size="14" fill="#166534">Gunakan solusi serupa</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. ABSTRAKSI (TP3) -->
+    <section class="slide" id="slide-6">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <span class="badge-tp" style="background:var(--c-purple);">TP 3</span>
+          <div class="icon-box" style="background:#ede9fe;color:var(--c-purple);">🎯</div>
+          <div class="h-title">Abstraksi</div>
+          <p>Abstraksi adalah proses memilih dan fokus pada <b>informasi penting</b> saja, sambil mengabaikan detail yang tidak relevan terhadap solusi masalah.</p>
+          <p><b>Contoh:</b> Peta jalur bus kota hanya menampilkan halte dan rute utama — tanpa detail bangunan di sekitarnya.</p>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 380 260" style="width:100%;height:clamp(260px,34vh,320px);">
+            <rect x="30" y="20" width="320" height="90" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+            <text x="190" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">Data Mentah / Studi Kasus</text>
+            <text x="60" y="72" font-size="12" fill="#334155">• Warna baju</text>
+            <text x="60" y="90" font-size="12" fill="#334155">• Nama panggilan</text>
+            <text x="210" y="72" font-size="12" font-weight="800" fill="#166534">• Jarak tempuh ✓</text>
+            <text x="210" y="90" font-size="12" font-weight="800" fill="#166534">• Waktu berangkat ✓</text>
+            <line x1="190" y1="112" x2="190" y2="140" stroke="#7C3AED" stroke-width="5"/>
+            <polygon points="190,150 182,138 198,138" fill="#7C3AED"/>
+            <rect x="70" y="152" width="240" height="70" rx="14" fill="#7C3AED"/>
+            <text x="190" y="182" text-anchor="middle" fill="#fff" font-weight="800" font-size="14">Informasi Penting</text>
+            <text x="190" y="204" text-anchor="middle" fill="#ede9fe" font-size="12" font-weight="700">Siap dipakai untuk solusi</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ALGORITMA & PSEUDOCODE (TP4 & TP6) -->
+    <section class="slide" id="slide-7">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <span class="badge-tp" style="background:var(--c-primary2);">TP 4 &amp; TP 6</span>
+          <div class="icon-box" style="background:#dbeafe;color:var(--c-primary);">📝</div>
+          <div class="h-title">Menyusun Algoritma &amp; Pseudocode</div>
+          <p>Setelah masalah dipahami, langkah-langkah solusi dituliskan secara <b>logis dan berurutan</b>, dapat berupa pseudocode (bahasa semu) atau blok kode visual.</p>
+          <p><b>Contoh Pseudocode — Membuat Teh Manis:</b></p>
+          <ul>
+            <li>MULAI</li>
+            <li>Didihkan air</li>
+            <li>Masukkan teh celup</li>
+            <li>Tambahkan gula, aduk</li>
+            <li>SELESAI</li>
+          </ul>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 300 300" style="width:100%;height:clamp(260px,34vh,320px);">
+            <ellipse cx="150" cy="24" rx="60" ry="20" fill="#16A34A"/>
+            <text x="150" y="29" text-anchor="middle" fill="#fff" font-weight="800" font-size="13">MULAI</text>
+            <line x1="150" y1="44" x2="150" y2="66" stroke="#1D4ED8" stroke-width="5"/>
+            <rect x="70" y="68" width="160" height="40" rx="8" fill="#3B82F6"/>
+            <text x="150" y="93" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">Didihkan air</text>
+            <line x1="150" y1="108" x2="150" y2="128" stroke="#1D4ED8" stroke-width="5"/>
+            <rect x="70" y="130" width="160" height="40" rx="8" fill="#3B82F6"/>
+            <text x="150" y="155" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">Masukkan teh celup</text>
+            <line x1="150" y1="170" x2="150" y2="190" stroke="#1D4ED8" stroke-width="5"/>
+            <rect x="70" y="192" width="160" height="40" rx="8" fill="#3B82F6"/>
+            <text x="150" y="217" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">Tambahkan gula, aduk</text>
+            <line x1="150" y1="232" x2="150" y2="252" stroke="#1D4ED8" stroke-width="5"/>
+            <ellipse cx="150" cy="270" rx="60" ry="20" fill="#EF4444"/>
+            <text x="150" y="275" text-anchor="middle" fill="#fff" font-weight="800" font-size="13">SELESAI</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. BERPIKIR KOMPUTASIONAL (TP5) -->
+    <section class="slide" id="slide-8">
+      <div class="materi-wrap">
+        <div class="materi-left">
+          <span class="badge-tp" style="background:var(--c-accent2);">TP 5</span>
+          <div class="icon-box" style="background:#fef3c7;color:var(--c-accent);">💡</div>
+          <div class="h-title">Berpikir Komputasional</div>
+          <p>Berpikir komputasional memadukan <b>dekomposisi, pengenalan pola, abstraksi, dan algoritma</b> untuk menghasilkan beberapa alternatif solusi dari masalah dengan data diskrit bervolume kecil.</p>
+          <p>Keempat pilar ini bekerja bersama-sama, bukan berdiri sendiri, agar solusi yang dihasilkan efektif dan efisien.</p>
+        </div>
+        <div class="materi-right">
+          <svg viewBox="0 0 340 300" style="width:100%;height:clamp(260px,34vh,320px);">
+            <circle cx="170" cy="150" r="46" fill="#1D4ED8"/>
+            <text x="170" y="146" text-anchor="middle" fill="#fff" font-weight="800" font-size="12">Berpikir</text>
+            <text x="170" y="162" text-anchor="middle" fill="#fff" font-weight="800" font-size="12">Komputasional</text>
+            <circle cx="70" cy="60" r="42" fill="#EF4444"/>
+            <text x="70" y="64" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">Dekomposisi</text>
+            <circle cx="270" cy="60" r="42" fill="#0D9488"/>
+            <text x="270" y="58" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">Pengenalan</text>
+            <text x="270" y="72" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">Pola</text>
+            <circle cx="70" cy="240" r="42" fill="#7C3AED"/>
+            <text x="70" y="244" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">Abstraksi</text>
+            <circle cx="270" cy="240" r="42" fill="#F59E0B"/>
+            <text x="270" y="244" text-anchor="middle" fill="#fff" font-weight="700" font-size="11">Algoritma</text>
+            <line x1="105" y1="90" x2="140" y2="120" stroke="#94a3b8" stroke-width="4"/>
+            <line x1="235" y1="90" x2="200" y2="120" stroke="#94a3b8" stroke-width="4"/>
+            <line x1="105" y1="210" x2="140" y2="180" stroke="#94a3b8" stroke-width="4"/>
+            <line x1="235" y1="210" x2="200" y2="180" stroke="#94a3b8" stroke-width="4"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. AKTIVITAS: SUSUN ALGORITMA -->
+    <section class="slide" id="slide-9">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+        <div class="h-title">🎮 Aktivitas: Urutkan Langkah Algoritma "Membuat Mi Instan"</div>
+        <div class="h-sub">Klik kartu secara berurutan sesuai langkah algoritma yang benar, dari langkah pertama hingga terakhir.</div>
+        <div class="akt-steps" id="akt-steps"></div>
+        <div class="footer-note" id="akt-status">Klik langkah pertama untuk memulai.</div>
+      </div>
+    </section>
+
+    <!-- 10. INTRO EVALUASI -->
+    <section class="slide" id="slide-10">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;text-align:center;">
+        <div class="icon-box" style="background:#dbeafe;color:var(--c-primary);">📋</div>
+        <div class="h-title">Evaluasi Formatif</div>
+        <p style="font-weight:700;font-size:14px;max-width:75%;">Uji pemahamanmu tentang materi Algoritma melalui tiga jenis soal berikut. Total skor keseluruhan adalah <b>100 poin</b>.</p>
+        <div style="display:flex;gap:16px;">
+          <div class="result-detail box" style="background:#eff6ff;"><b>40</b>Pilihan Ganda</div>
+          <div class="result-detail box" style="background:#fef3c7;"><b>30</b>Menjodohkan</div>
+          <div class="result-detail box" style="background:#dcfce7;"><b>30</b>Benar / Salah</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. PG -->
+    <section class="slide" id="slide-11">
+      <div class="eval-wrap">
+        <div class="q-box">
+          <span class="badge-tp">Pilihan Ganda · 8 poin/soal</span>
+          <div class="q-text" id="pg-text"></div>
+          <div class="opt-grid" id="pg-opts"></div>
+        </div>
+        <div class="eval-footer">
+          <span id="pg-info">Soal 1 dari 5</span>
+          <div class="progress-mini" id="pg-progress"></div>
+          <span id="pg-score">Skor: 0/40</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. MENJODOHKAN -->
+    <section class="slide" id="slide-12">
+      <div class="eval-wrap">
+        <div class="q-box" style="justify-content:flex-start;">
+          <span class="badge-tp" style="background:var(--c-accent);">Menjodohkan · 6 poin/pasangan</span>
+          <div class="h-sub">Klik istilah di kiri, lalu klik definisi yang sesuai di kanan.</div>
+          <div class="match-wrap">
+            <svg id="match-svg"></svg>
+            <div class="match-col" id="match-left"></div>
+            <div class="match-col" id="match-right"></div>
+          </div>
+        </div>
+        <div class="eval-footer">
+          <span id="match-info">Pasangan benar: 0 dari 5</span>
+          <span id="match-score">Skor: 0/30</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. BENAR/SALAH -->
+    <section class="slide" id="slide-13">
+      <div class="eval-wrap">
+        <div class="q-box">
+          <span class="badge-tp" style="background:var(--c-success);">Benar / Salah · 5 poin/soal</span>
+          <div class="q-text" id="bs-text"></div>
+          <div class="bs-grid">
+            <button class="bs-btn b" onclick="answerBS(true)">✔ BENAR</button>
+            <button class="bs-btn s" onclick="answerBS(false)">✘ SALAH</button>
+          </div>
+          <div class="footer-note" id="bs-feedback"></div>
+        </div>
+        <div class="eval-footer">
+          <span id="bs-info">Soal 1 dari 6</span>
+          <div class="progress-mini" id="bs-progress"></div>
+          <span id="bs-score">Skor: 0/30</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14. HASIL -->
+    <section class="slide" id="slide-14">
+      <div class="result-wrap">
+        <div class="h-title">🏆 Hasil Evaluasi</div>
+        <div class="score-circle" id="score-circle" style="--pct:0;">
+          <div class="inner"><div class="num" id="score-total">0</div><span style="font-size:11px;font-weight:700;color:var(--c-sub);">dari 100</span></div>
+        </div>
+        <div class="result-detail">
+          <div class="box"><b id="rd-pg">0/40</b>Pilihan Ganda</div>
+          <div class="box"><b id="rd-match">0/30</b>Menjodohkan</div>
+          <div class="box"><b id="rd-bs">0/30</b>Benar/Salah</div>
+        </div>
+        <p id="score-feedback" style="font-weight:800;font-size:15px;color:var(--c-primary);"></p>
+      </div>
+    </section>
+
+    <!-- 15. PENUTUP -->
+    <section class="slide" id="slide-15">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;">
+        <div class="icon-box" style="background:#fef3c7;color:var(--c-accent);">🎉</div>
+        <div class="h-title">Terima Kasih!</div>
+        <p style="font-weight:700;font-size:14px;max-width:70%;">Teruslah berlatih menyusun algoritma dalam kehidupan sehari-hari. Berpikir komputasional adalah keterampilan yang berguna di segala bidang.</p>
+        <p class="footer-note" id="penutup-meta"></p>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="navbar">
+    <button class="nav-btn" id="btn-prev" onclick="playClick();prevSlide();">← Sebelumnya</button>
+    <div id="dots"></div>
+    <button class="nav-btn" id="btn-next" onclick="playClick();nextSlide();">Berikutnya →</button>
+  </div>
+</div>
+
+<script>
+/* ============ IDENTITAS DATA (BAGIAN 1) ============ */
+const DATA = {
+  sekolah:"SMP Negeri 2 Deket",
+  guru:"Nila Endah Setiawati, S.Kom",
+  mapel:"Informatika",
+  kelasFase:"Kelas VII · Fase D",
+  materi:"Algoritma (Algorithm Design)"
+};
+document.getElementById('tb-sekolah').textContent = DATA.sekolah;
+document.getElementById('tb-mapel').textContent = DATA.mapel + " · Materi: " + DATA.materi;
+document.getElementById('tb-fase').textContent = DATA.kelasFase;
+document.getElementById('id-sekolah').textContent = DATA.sekolah;
+document.getElementById('id-guru').textContent = DATA.guru;
+document.getElementById('id-mapel').textContent = DATA.mapel;
+document.getElementById('id-kelas').textContent = DATA.kelasFase.replace('Kelas ','').replace(' · ',' / ');
+document.getElementById('id-materi').textContent = DATA.materi;
+document.getElementById('cover-meta').textContent = `${DATA.sekolah} · ${DATA.mapel} · ${DATA.kelasFase} · ${DATA.guru}`;
+document.getElementById('penutup-meta').textContent = `${DATA.mapel} · ${DATA.materi} · ${DATA.guru} · ${DATA.sekolah}`;
+
+/* ============ WEB AUDIO SFX ============ */
+let actx;
+function ctx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function tone(freq,dur,type,vol,delay){
+  const c = ctx(); const t0 = c.currentTime + (delay||0);
+  const osc = c.createOscillator(); const gain = c.createGain();
+  osc.type = type||'sine'; osc.frequency.setValueAtTime(freq,t0);
+  gain.gain.setValueAtTime(0,t0);
+  gain.gain.linearRampToValueAtTime(vol||0.14,t0+0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001,t0+dur);
+  osc.connect(gain).connect(c.destination);
+  osc.start(t0); osc.stop(t0+dur+0.02);
+}
+function playClick(){ tone(720,0.08,'triangle',0.12); }
+function playCorrect(){ tone(523,0.12,'sine',0.15,0); tone(784,0.16,'sine',0.15,0.1); }
+function playWrong(){ tone(220,0.18,'sawtooth',0.12,0); tone(160,0.22,'sawtooth',0.12,0.08); }
+function playSuccess(){ [523,659,784,1046].forEach((f,i)=>tone(f,0.18,'sine',0.13,i*0.09)); }
+function playSwipe(){ tone(380,0.1,'triangle',0.1); }
+
+/* ============ NAVIGASI SLIDE ============ */
+const slideIds = ['slide-cover','slide-1','slide-2','slide-3','slide-4','slide-5','slide-6','slide-7','slide-8','slide-9','slide-10','slide-11','slide-12','slide-13','slide-14','slide-15'];
+const titles = ['Sampul','Identitas Pembelajaran','Tujuan Pembelajaran','Mengenal Algoritma','Dekomposisi','Pengenalan Pola','Abstraksi','Menyusun Algoritma','Berpikir Komputasional','Aktivitas: Susun Algoritma','Evaluasi Formatif','Evaluasi: Pilihan Ganda','Evaluasi: Menjodohkan','Evaluasi: Benar/Salah','Hasil Evaluasi','Penutup'];
+let current = 0;
+const dotsWrap = document.getElementById('dots');
+slideIds.forEach((id,i)=>{
+  const d = document.createElement('div'); d.className='dot'; d.onclick=()=>{playClick();goTo(i);};
+  dotsWrap.appendChild(d);
+});
+function renderDots(){
+  [...dotsWrap.children].forEach((d,i)=>d.classList.toggle('active', i===current));
+}
+function goTo(idx){
+  if(idx<0||idx>=slideIds.length) return;
+  document.getElementById(slideIds[current]).classList.remove('active');
+  current = idx;
+  document.getElementById(slideIds[current]).classList.add('active');
+  document.getElementById('tb-pagetitle').textContent = titles[current];
+  document.getElementById('btn-prev').disabled = current===0;
+  document.getElementById('btn-next').disabled = current===slideIds.length-1;
+  const topbar = document.getElementById('topbar');
+  const navbar = document.getElementById('navbar');
+  const cover = current===0;
+  topbar.style.visibility = cover ? 'hidden' : 'visible';
+  navbar.style.visibility = cover ? 'hidden' : 'visible';
+  renderDots();
+  if(current===9) initAktivitas();
+  if(current===11) initPG();
+  if(current===12) initMatch();
+  if(current===13) initBS();
+  if(current===14) showResult();
+}
+function nextSlide(){ if(current<slideIds.length-1){ playSwipe(); goTo(current+1);} }
+function prevSlide(){ if(current>0){ playSwipe(); goTo(current-1);} }
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') nextSlide();
+  if(e.key==='ArrowLeft') prevSlide();
+});
+goTo(0);
+
+/* ============ SKOR GLOBAL ============ */
+const score = { pg:0, match:0, bs:0 };
+
+/* ============ AKTIVITAS: SUSUN ALGORITMA ============ */
+const aktCorrectOrder = [
+  "Rebus air hingga mendidih",
+  "Masukkan mi ke dalam air mendidih, masak 3 menit",
+  "Siapkan bumbu di mangkuk",
+  "Tuang mi dan sedikit air rebusan ke mangkuk",
+  "Aduk mi dan bumbu hingga merata"
+];
+let aktShuffled = [], aktNextIndex = 0, aktDone = false;
+function initAktivitas(){
+  if(aktDone) return;
+  aktShuffled = [...aktCorrectOrder].sort(()=>Math.random()-0.5);
+  aktNextIndex = 0;
+  const wrap = document.getElementById('akt-steps');
+  wrap.innerHTML='';
+  aktShuffled.forEach((txt)=>{
+    const el = document.createElement('div');
+    el.className='akt-item'; el.dataset.txt = txt;
+    el.innerHTML = `<span class="num">?</span><span>${txt}</span>`;
+    el.onclick = ()=>clickAkt(el,txt);
+    wrap.appendChild(el);
+  });
+  document.getElementById('akt-status').textContent = 'Klik langkah pertama untuk memulai.';
+}
+function clickAkt(el,txt){
+  if(aktDone || el.classList.contains('correct-pos')) return;
+  if(txt === aktCorrectOrder[aktNextIndex]){
+    el.classList.add('correct-pos');
+    el.querySelector('.num').textContent = aktNextIndex+1;
+    playCorrect();
+    aktNextIndex++;
+    if(aktNextIndex===aktCorrectOrder.length){
+      aktDone = true;
+      document.getElementById('akt-status').textContent = '🎉 Urutan algoritma benar! Kamu berhasil menyusunnya dengan tepat.';
+      playSuccess();
+    } else {
+      document.getElementById('akt-status').textContent = `Bagus! Lanjutkan ke langkah ke-${aktNextIndex+1}.`;
+    }
+  } else {
+    playWrong();
+    el.style.borderColor='var(--c-danger)';
+    setTimeout(()=>{ el.style.borderColor='transparent'; },400);
+    document.getElementById('akt-status').textContent = 'Belum tepat, coba perhatikan urutan logisnya kembali.';
+  }
+}
+
+/* ============ EVALUASI PG ============ */
+const pgData = [
+  {q:"Apa yang dimaksud dengan dekomposisi dalam berpikir komputasional?", opts:["Memecah masalah besar menjadi bagian-bagian kecil","Menghafal semua kemungkinan solusi","Menggabungkan semua data tanpa seleksi","Menulis kode program langsung"], correct:0},
+  {q:"Proses memilih informasi penting dan mengabaikan detail yang tidak relevan disebut...", opts:["Algoritma","Abstraksi","Dekomposisi","Debugging"], correct:1},
+  {q:"Ciri utama algoritma yang baik adalah, KECUALI...", opts:["Logis dan runtut","Memiliki titik akhir","Boleh membingungkan","Efektif menyelesaikan masalah"], correct:2},
+  {q:"Menemukan kesamaan cara penyelesaian dari dua masalah berbeda disebut...", opts:["Pengenalan pola","Sintaksis","Kompilasi","Enkripsi"], correct:0},
+  {q:"Langkah-langkah penyelesaian masalah yang dituliskan dalam bahasa semu disebut...", opts:["Algoritma mesin","Pseudocode","Query","Database"], correct:1}
+];
+let pgIndex=0, pgAnswered=false;
+function initPG(){ pgIndex=0; score.pg=0; renderPG(); }
+function renderPG(){
+  const d = pgData[pgIndex];
+  document.getElementById('pg-text').textContent = `${pgIndex+1}. ${d.q}`;
+  const opts = document.getElementById('pg-opts'); opts.innerHTML='';
+  pgAnswered=false;
+  d.opts.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt-btn'; b.textContent=o;
+    b.onclick=()=>answerPG(i,b);
+    opts.appendChild(b);
+  });
+  document.getElementById('pg-info').textContent = `Soal ${pgIndex+1} dari ${pgData.length}`;
+  document.getElementById('pg-score').textContent = `Skor: ${score.pg}/40`;
+  const prog = document.getElementById('pg-progress'); prog.innerHTML='';
+  pgData.forEach((_,i)=>{ const s=document.createElement('span'); if(i<pgIndex) s.classList.add('done'); if(i===pgIndex) s.classList.add('now'); prog.appendChild(s); });
+}
+function answerPG(i,btn){
+  if(pgAnswered) return; pgAnswered=true;
+  const d = pgData[pgIndex];
+  const allBtns = document.querySelectorAll('#pg-opts .opt-btn');
+  allBtns.forEach(b=>b.disabled=true);
+  if(i===d.correct){ btn.classList.add('correct'); score.pg+=8; playCorrect(); }
+  else{ btn.classList.add('wrong'); allBtns[d.correct].classList.add('correct'); playWrong(); }
+  document.getElementById('pg-score').textContent = `Skor: ${score.pg}/40`;
+  setTimeout(()=>{
+    if(pgIndex < pgData.length-1){ pgIndex++; renderPG(); }
+    else { nextSlide(); }
+  },1100);
+}
+
+/* ============ EVALUASI MENJODOHKAN ============ */
+const matchData = [
+  {term:"Dekomposisi", def:"Memecah masalah besar menjadi bagian kecil"},
+  {term:"Pengenalan Pola", def:"Menemukan kesamaan antar-masalah"},
+  {term:"Abstraksi", def:"Memilah informasi penting, buang yang tak relevan"},
+  {term:"Algoritma", def:"Langkah logis dan runtut penyelesaian masalah"},
+  {term:"Pseudocode", def:"Penulisan langkah solusi dalam bahasa semu"}
+];
+let matchSelected=null, matchCorrectCount=0, matchLinked=[];
+function initMatch(){
+  matchSelected=null; matchCorrectCount=0; matchLinked=[]; score.match=0;
+  const left = document.getElementById('match-left'); const right = document.getElementById('match-right');
+  left.innerHTML=''; right.innerHTML='';
+  const terms = matchData.map(d=>d.term);
+  const defs = [...matchData.map(d=>d.def)].sort(()=>Math.random()-0.5);
+  terms.forEach(t=>{
+    const el=document.createElement('div'); el.className='match-item'; el.textContent=t; el.dataset.term=t;
+    el.onclick=()=>selectLeft(el,t);
+    left.appendChild(el);
+  });
+  defs.forEach(dtext=>{
+    const el=document.createElement('div'); el.className='match-item'; el.textContent=dtext; el.dataset.def=dtext;
+    el.onclick=()=>selectRight(el,dtext);
+    right.appendChild(el);
+  });
+  document.getElementById('match-info').textContent = `Pasangan benar: 0 dari ${matchData.length}`;
+  document.getElementById('match-score').textContent = `Skor: 0/30`;
+  document.getElementById('match-svg').innerHTML='';
+}
+function selectLeft(el,term){
+  if(el.classList.contains('linked')) return;
+  document.querySelectorAll('#match-left .match-item').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected'); matchSelected=term; playClick();
+}
+function selectRight(el,defText){
+  if(el.classList.contains('linked') || !matchSelected) return;
+  const correctDef = matchData.find(d=>d.term===matchSelected).def;
+  const leftEl = [...document.querySelectorAll('#match-left .match-item')].find(x=>x.dataset.term===matchSelected);
+  if(defText===correctDef){
+    el.classList.add('linked'); leftEl.classList.add('linked'); leftEl.classList.remove('selected');
+    drawLine(leftEl, el, true);
+    matchCorrectCount++; score.match+=6; playCorrect();
+    document.getElementById('match-info').textContent = `Pasangan benar: ${matchCorrectCount} dari ${matchData.length}`;
+    document.getElementById('match-score').textContent = `Skor: ${score.match}/30`;
+    matchSelected=null;
+    if(matchCorrectCount===matchData.length){ setTimeout(()=>{ playSuccess(); nextSlide(); },900); }
+  } else {
+    playWrong();
+    el.classList.add('wronglink');
+    setTimeout(()=>el.classList.remove('wronglink'),450);
+  }
+}
+function drawLine(elA,elB,correct){
+  const svg = document.getElementById('match-svg');
+  const wrap = document.querySelector('.match-wrap').getBoundingClientRect();
+  const a = elA.getBoundingClientRect(), b = elB.getBoundingClientRect();
+  const x1=a.right-wrap.left, y1=a.top+a.height/2-wrap.top, x2=b.left-wrap.left, y2=b.top+b.height/2-wrap.top;
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x1); line.setAttribute('y1',y1); line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+  line.setAttribute('stroke', correct?'#16A34A':'#DC2626'); line.setAttribute('stroke-width','4');
+  line.setAttribute('stroke-linecap','round');
+  svg.appendChild(line);
+}
+
+/* ============ EVALUASI BENAR/SALAH ============ */
+const bsData = [
+  {q:"Algoritma boleh tidak memiliki titik akhir asalkan langkahnya banyak.", ans:false},
+  {q:"Dekomposisi membantu masalah besar menjadi lebih mudah diselesaikan.", ans:true},
+  {q:"Abstraksi berarti menyertakan seluruh detail tanpa terkecuali.", ans:false},
+  {q:"Pengenalan pola dapat mempercepat pencarian solusi baru.", ans:true},
+  {q:"Pseudocode ditulis menggunakan bahasa pemrograman yang baku dan wajib dikompilasi.", ans:false},
+  {q:"Berpikir komputasional memadukan dekomposisi, pola, abstraksi, dan algoritma.", ans:true}
+];
+let bsIndex=0, bsAnswered=false;
+function initBS(){ bsIndex=0; score.bs=0; renderBS(); }
+function renderBS(){
+  bsAnswered=false;
+  document.getElementById('bs-text').textContent = `${bsIndex+1}. ${bsData[bsIndex].q}`;
+  document.getElementById('bs-feedback').textContent='';
+  document.getElementById('bs-info').textContent = `Soal ${bsIndex+1} dari ${bsData.length}`;
+  document.getElementById('bs-score').textContent = `Skor: ${score.bs}/30`;
+  const prog = document.getElementById('bs-progress'); prog.innerHTML='';
+  bsData.forEach((_,i)=>{ const s=document.createElement('span'); if(i<bsIndex) s.classList.add('done'); if(i===bsIndex) s.classList.add('now'); prog.appendChild(s); });
+}
+function answerBS(val){
+  if(bsAnswered) return; bsAnswered=true;
+  const correct = val===bsData[bsIndex].ans;
+  if(correct){ score.bs+=5; playCorrect(); document.getElementById('bs-feedback').textContent='✔ Jawaban benar!'; document.getElementById('bs-feedback').style.color='var(--c-success)'; }
+  else{ playWrong(); document.getElementById('bs-feedback').textContent=`✘ Kurang tepat. Jawaban yang benar: ${bsData[bsIndex].ans?'BENAR':'SALAH'}`; document.getElementById('bs-feedback').style.color='var(--c-danger)'; }
+  document.getElementById('bs-score').textContent = `Skor: ${score.bs}/30`;
+  setTimeout(()=>{
+    if(bsIndex<bsData.length-1){ bsIndex++; renderBS(); }
+    else { nextSlide(); }
+  },1100);
+}
+
+/* ============ HASIL ============ */
+function showResult(){
+  const total = score.pg+score.match+score.bs;
+  document.getElementById('score-total').textContent = total;
+  document.getElementById('score-circle').style.setProperty('--pct', total);
+  document.getElementById('rd-pg').textContent = `${score.pg}/40`;
+  document.getElementById('rd-match').textContent = `${score.match}/30`;
+  document.getElementById('rd-bs').textContent = `${score.bs}/30`;
+  let msg='';
+  if(total>=90) msg='Luar biasa! Pemahamanmu tentang Algoritma sangat baik. 🌟';
+  else if(total>=75) msg='Bagus sekali! Kamu sudah memahami sebagian besar materi. 👍';
+  else if(total>=60) msg='Cukup baik, coba pelajari kembali bagian yang masih keliru.';
+  else msg='Ayo pelajari kembali materi Algoritma, kamu pasti bisa lebih baik!';
+  document.getElementById('score-feedback').textContent = msg;
+  playSuccess();
+}
+</script>
+</body>
+</html>
